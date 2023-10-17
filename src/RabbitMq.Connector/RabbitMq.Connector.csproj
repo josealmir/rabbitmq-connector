@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Authors>José Almir</Authors>    
+    <PackageIcon>icon.png</PackageIcon>
+    <RepositoryType>git</RepositoryType>
+    <Copyright>Copyright(c) José Almir</Copyright>
+    <PackageVersion>$(Version)</PackageVersion>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PackageOutputPath>../../artifacts/</PackageOutputPath>
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <Description>This package is an implementation of the connection whit RabbitMQ that using MediatR package to publish/consumer events.</Description>
+    <PackageTags>RabbitMQ; ServiceBus; Message Broker</PackageTags>
+    <ProjectUrl>https://github.com/josealmir/rabbitmq-connector</ProjectUrl>
+    <RepositoryUrl>https://github.com/josealmir/rabbitmq-connector.git</RepositoryUrl>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Divino.OperationResult" Version="3.1.0" />
+    <PackageReference Include="MediatR" Version="12.1.1" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="7.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="7.0.0" />
+    <PackageReference Include="RabbitMQ.Client" Version="6.6.0" />
+    <PackageReference Include="Serilog" Version="3.0.1" />
+    <PackageReference Include="System.Text.Json" Version="7.0.3" />
+  </ItemGroup>
+  <ItemGroup>
+      <None Include="..\..\docs\icon.png" Pack="true" PackagePath="\" />
+      <None Include="..\..\docs\README.md" Pack="true" PackagePath="\" />
+      <None Include="..\..\docs\LICENSE" Pack="true" PackagePath="\" />
+  </ItemGroup>
+</Project>
