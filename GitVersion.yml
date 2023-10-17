@@ -1,0 +1,53 @@
+mode: ContinuousDelivery
+branches:
+  main:
+    regex: ^master$|^main$
+    tag: ''
+    is-release-branch: false
+    prevent-increment-of-merged-branch-version: true
+    track-merge-target: false
+    tracks-release-branches: false
+    is-mainline: true
+  release:
+    regex: ^releases?[/-]
+    tag: ''
+    increment: Minor
+    is-release-branch: true
+    is-mainline: true
+    prevent-increment-of-merged-branch-version: true
+    track-merge-target: false
+    tracks-release-branches: false
+    source-branches: ['develop']
+  feature:
+    regex: ^feature(es)?[/-]
+    tag: ''
+    increment: Minor
+    is-release-branch: false
+    prevent-increment-of-merged-branch-version: false
+    track-merge-target: false
+    tracks-release-branches: false
+  pull-request:
+    regex: (pull|pull\-requests|pr)[/-]
+    is-release-branch: false
+    prevent-increment-of-merged-branch-version: false
+    track-merge-target: false
+    tracks-release-branches: false
+  hotfix:
+    regex: ^hotfix(es)?[/-]
+    tag: ''
+    increment: Patch
+    is-release-branch: false
+    prevent-increment-of-merged-branch-version: false
+    track-merge-target: false
+    tracks-release-branches: false
+  develop:
+    regex: develop
+    mode: ContinuousDelivery
+    is-release-branch: false
+    prevent-increment-of-merged-branch-version: false
+    track-merge-target: true
+    tracks-release-branches: true
+ignore:
+  sha: []
+merge-message-formats: {}
+
