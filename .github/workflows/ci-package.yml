@@ -1,0 +1,45 @@
+name: CI-Run-Package
+
+on:
+  push:
+    branches: [ "develop" ]
+    paths:
+      - "**.cs"
+      - ".editorconfig"
+  pull_request:
+    branches: [ "develop" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 7.0.x
+      - name: Restore Local Tool
+        run: dotnet tool restore
+      - uses: actions/checkout@v3 
+        with:
+          fetch-depth: 0
+      - name: Run the Cake script 
+        shell: bash
+        run: dotnet cake --target=CheckCoverage
+      - name: Convert sarif for uploading to GitHub
+        uses: security-code-scan/security-code-scan-results-action@v1.3
+      - name: Code Coverage Summary Report
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: coverageOutput/result.cobertura.xml
+          badge: true
+          format: 'markdown'
+          output: 'both'
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request'
+        with:
+          recreate: true
+          path: code-coverage-results.md
+      - name: Write to Job Summary
+        run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
