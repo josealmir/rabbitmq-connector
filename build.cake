@@ -36,7 +36,7 @@ Task("Version")
         ConfigFile = new FilePath("./GitVersion.yml")
     });
     
-    version = result.NuGetVersionV2;
+    version = result.NuGetVersionV2.Split('-')[0];
     Information($"Version: { version }");
 });
 
