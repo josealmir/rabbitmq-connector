@@ -1,20 +1,57 @@
-mode: Mainline
+mode: ContinuousDelivery
+assembly-versioning-scheme: MajorMinorPatch
+assembly-file-versioning-scheme: MajorMinorPatch
+assembly-informational-format: '{Major}.{Minor}.{Patch}'
 branches:
   main:
-    tag: ''
-    increment: 'Inherit'
-    source-branches:
-      - main
-    is-release-branch: true
-  feature:
-    increment: Minor
-    tag: ''
-  release:
-    increment: Minor
+    regex: ^master$|^main$
     tag: ''
     is-release-branch: false
-  hotfix:
-    increment: Patch
+    prevent-increment-of-merged-branch-version: true
+    track-merge-target: false
+    tracks-release-branches: false
+    is-mainline: true
+  release:
+    regex: ^releases?[/-]
     tag: ''
+    increment: Minor
+    is-release-branch: true
+    is-mainline: true
+    prevent-increment-of-merged-branch-version: true
+    track-merge-target: false
+    tracks-release-branches: false
+    source-branches: ['develop']
+  feature:
+    regex: ^feature(es)?[/-]
+    tag: ''
+    increment: Minor
+    is-release-branch: false
+    prevent-increment-of-merged-branch-version: false
+    track-merge-target: false
+    tracks-release-branches: false
+  pull-request:
+    regex: override_default_feature
+    tag: ''
+    is-release-branch: false
+    prevent-increment-of-merged-branch-version: false
+    track-merge-target: true
+    tracks-release-branches: true   
+  hotfix:
+    regex: ^hotfix(es)?[/-]
+    tag: ''
+    increment: Patch
+    is-release-branch: false
+    prevent-increment-of-merged-branch-version: false
+    track-merge-target: false
+    tracks-release-branches: false
+  develop:
+    regex: develop
+    tag: ''
+    mode: ContinuousDeployment
+    is-release-branch: false
+    prevent-increment-of-merged-branch-version: false
+    track-merge-target: true
+    tracks-release-branches: true
 ignore:
-  sha: [ ]
+  sha: []
+merge-message-formats: {}
