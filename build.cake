@@ -32,7 +32,8 @@ Task("Version")
    .IsDependentOn("Clean")
    .Does(() => {
    var result = GitVersion(new GitVersionSettings {
-        UpdateAssemblyInfo = true
+        UpdateAssemblyInfo = true,
+        ConfigFile = new FilePath("./GitVersion.yml")
     });
     
     version = result.NuGetVersionV2;
