@@ -6,20 +6,20 @@ namespace RabbitMq.Connector.Rabbit
     {
         public const string SectionName = "RabbitMq";
         [Required]
-        public virtual string Username { get; set; } = string.Empty;
+        public virtual string Username { get; set; } = "Guest";
         [Required]
-        public virtual string Password { get; set; } = string.Empty;
+        public virtual string Password { get; set; } = "Guest";
         [Required]
-        public virtual int Port { get; set; }
+        public virtual int Port { get; set; } = 5672;
         [Required]
-        public virtual string HostName { get; set; } = string.Empty;
+        public virtual string HostName { get; set; } = "127.0.0.1";
         [Required]
         public virtual string ExchangeName { get; set; } = string.Empty;
         [Required]
         public virtual string QueueName { get; set; } = string.Empty;
         [Required]
-        public virtual string VirtualHost { get; set; } = string.Empty;
+        public virtual string VirtualHost { get; set; } = "/";
         public virtual string DeadLetterName => $"{QueueName}.error";
-        public virtual int ConsumersCount { get; set; } = 5;        
+        public virtual int ConsumersCount { get; set; } = 5;      
     }
 }

@@ -7,7 +7,7 @@
     <PackageIcon>icon.png</PackageIcon>
     <RepositoryType>git</RepositoryType>
     <Copyright>Copyright(c) José Almir</Copyright>
-    <PackageVersion>$(Version)</PackageVersion>
+    <PackageVersion>$(VersionSuffix)</PackageVersion>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

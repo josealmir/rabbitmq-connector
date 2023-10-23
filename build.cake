@@ -32,10 +32,11 @@ Task("Version")
    .IsDependentOn("Clean")
    .Does(() => {
    var result = GitVersion(new GitVersionSettings {
-        UpdateAssemblyInfo = true
+        UpdateAssemblyInfo = true,
+        ConfigFile = new FilePath("./GitVersion.yml")
     });
     
-    version = result.NuGetVersionV2;
+    version = result.NuGetVersionV2.Split('-')[0];
     Information($"Version: { version }");
 });
 
@@ -142,7 +143,7 @@ Task("Pack")
         NoRestore = true,
         MSBuildSettings = new DotNetMSBuildSettings()
                         .WithProperty("PackageVersion", version)
-                        .WithProperty("Copyright", $"Copyright threenine.co.uk {DateTime.Now.Year}")
+                        .WithProperty("Copyright", $"Copyright José Almir - {DateTime.Now.Year}")
                         .WithProperty("Version", version)
     };
     
