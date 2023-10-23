@@ -24,49 +24,53 @@ namespace RabbitMq.Connector.Rabbit
             _logger = logger;
             _exchangeQueueCreator = exchangeQueueCreator;
             _rabbitMqEventBusOptions = options.Value;
+            EnsureQueueAndExchangeAreCreated();
         }
 
         public async Task InitializeConsumersChannelsAsync()
         {
-            _exchangeQueueCreator.EnsureExchangeIsCreated();
-            _exchangeQueueCreator.EnsureQueueIsCreated();
+            if (!_persistentConnection.IsConnected)
+                _persistentConnection.TryConnect();
 
-            _logger.LogDebug("Initializing consumer");
+            _logger.LogInformation("Initializing consumer");
 
             var consumerStarts = new List<Task>();
             for (int i = 0; i < _rabbitMqEventBusOptions.ConsumersCount; i++)
             {
-                consumerStarts.Add(InitializeConsumer());
+                var channel = _persistentConnection.CreateModel();
+                consumerStarts.Add(Task.Run(() => InitializeConsumer(channel)));
             }
 
             await Task.WhenAll(consumerStarts);
         }
 
-        private async Task InitializeConsumer()
+        private void InitializeConsumer(IModel channel)
         {
-            await Task.Factory.StartNew(() =>
+            ArgumentNullException.ThrowIfNull(channel);
+
+            channel.BasicQos(0, 1, false);
+            var consumer = _persistentConnection.CreateConsumer(channel);
+            consumer.Received += (sender, ea) => _rabbitConsumerHandler.HandleAsync(channel, ea);
+
+            channel.BasicConsume(queue: _rabbitMqEventBusOptions.QueueName, autoAck: false, consumer);
+            channel.CallbackException += async (sender, ea) =>
             {
-                var channel = _persistentConnection.CreateModel();
-                _channels.Add(channel);
-                channel.BasicQos(0, 1, false);
-                var consumer = new EventingBasicConsumer(channel);
-                consumer.Received += (sender, ea) => _rabbitConsumerHandler.HandleAsync(channel, ea);
+                channel.Dispose();
+                InitializeConsumer(_persistentConnection.CreateModel());
+            };
 
-                channel.CallbackException += async (sender, ea) =>
-                {
-                    if (channel.IsOpen)
-                        channel.Dispose();
-                    _channels.Remove(channel);
-                    await InitializeConsumer();
-                };
-
-                channel.TxSelect();
-                channel.BasicConsume(queue: _rabbitMqEventBusOptions.QueueName, autoAck: false, consumer);
-
-                _logger.LogDebug("Consumer initialized successfully");
-            });
+            _logger.LogInformation("Consumer initialized successfully");
         }
 
+        private void EnsureQueueAndExchangeAreCreated()
+        {
+            if (_persistentConnection.IsConnected)
+                _persistentConnection.TryConnect();
+            
+            using var channel = _persistentConnection.CreateModel();
+            channel.ExchangeDeclare(exchange: _rabbitMqEventBusOptions.ExchangeName, type: "topic");
+            channel.QueueDeclare(_rabbitMqEventBusOptions.QueueName, durable: true, autoDelete: false, exclusive: false);
+        }
         public void Dispose()
         {
             foreach (var channel in _channels)
