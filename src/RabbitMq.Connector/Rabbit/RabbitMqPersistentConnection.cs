@@ -65,6 +65,9 @@ namespace RabbitMq.Connector.Rabbit
             return model;
         }
 
+        public EventingBasicConsumer CreateConsumer(IModel channel) 
+            => new(channel);
+
         public void Dispose()
         {
             if (_disposed) return;
@@ -73,7 +76,7 @@ namespace RabbitMq.Connector.Rabbit
 
             try
             {
-                _connection?.Dispose();
+                _connection.Dispose();
             }
             catch (IOException ex)
             {

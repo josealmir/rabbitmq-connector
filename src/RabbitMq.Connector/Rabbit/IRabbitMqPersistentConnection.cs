@@ -1,4 +1,5 @@
 ﻿using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
 namespace RabbitMq.Connector.Rabbit
 {
@@ -7,5 +8,6 @@ namespace RabbitMq.Connector.Rabbit
         bool IsConnected { get; }
         void TryConnect();
         IModel CreateModel();
+        EventingBasicConsumer CreateConsumer(IModel model);
     }
 }
