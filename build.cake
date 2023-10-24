@@ -163,9 +163,10 @@ Task("PublishNuget")
  .IsDependentOn("Pack")
  .Does(context =>
  {
-     if (BuildSystem.GitHubActions.IsRunningOnGitHubActions)
-     {
-         foreach (var file in GetFiles($"./artifacts/*.nupkg"))
+    Information("PublishNuget: {0 }", BuildSystem.GitHubActions.IsRunningOnGitHubActions);
+    if (BuildSystem.GitHubActions.IsRunningOnGitHubActions)
+    {
+         foreach (var file in GetFiles("./artifacts/*.nupkg"))
          {
              Information("Publishing {0}...", file.GetFilename().FullPath);
              DotNetNuGetPush(file, new DotNetNuGetPushSettings
@@ -174,16 +175,17 @@ Task("PublishNuget")
                  Source = "https://api.nuget.org/v3/index.json"
              });
          }
-     }
+    }
  });
 
 Task("PublishGithub")
  .IsDependentOn("PublishNuget")
  .Does(context =>
  {
+     Information("PublishGithub: {0 }", BuildSystem.GitHubActions.IsRunningOnGitHubActions);
      if (BuildSystem.GitHubActions.IsRunningOnGitHubActions)
      {
-         foreach (var file in GetFiles($"./artifacts/*.nupkg"))
+         foreach (var file in GetFiles("./artifacts/*.nupkg"))
          {
              Information("Publishing {0}...", file.GetFilename().FullPath);
              DotNetNuGetPush(file, new DotNetNuGetPushSettings
