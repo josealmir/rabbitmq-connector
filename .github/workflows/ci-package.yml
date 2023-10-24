@@ -2,12 +2,12 @@ name: CI-Run-Package
 
 on:
   push:
-    branches: [ "develop" ]
+    branches: [ "develop", "main" ]
     paths:
       - "**.cs"
       - ".editorconfig"
   pull_request:
-    branches: [ "develop" ]
+    branches: [ "develop", "main" ]
 
 jobs:
   build:
