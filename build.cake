@@ -30,54 +30,59 @@ Task("Clean")
 
 Task("Version")
    .IsDependentOn("Clean")
-   .Does(() => {
-   var result = GitVersion(new GitVersionSettings {
-        UpdateAssemblyInfo = true,
-        ConfigFile = new FilePath("./GitVersion.yml")
-    });
-    
-    version = result.NuGetVersionV2.Split('-')[0];
-    Information($"Version: { version }");
-});
+   .Does(() =>
+   {
+       var result = GitVersion(new GitVersionSettings
+       {
+           UpdateAssemblyInfo = true,
+           ConfigFile = new FilePath("./GitVersion.yml")
+       });
+
+       version = result.NuGetVersionV2.Split('-')[0];
+       Information($"Version: {version}");
+   });
 
 Task("Build")
     .IsDependentOn("Version")
-    .Does(() => {
-     var buildSettings = new DotNetBuildSettings {
-                        Configuration = configuration,
-                        MSBuildSettings = new DotNetMSBuildSettings()
-                                                      .WithProperty("Version", version)
-                                                      .WithProperty("AssemblyVersion", version)
-                                                      .WithProperty("FileVersion", version)
-                       };
-    var projects = GetFiles("./**/**/*.csproj");     
-    foreach(var project in projects)
-    {        
-        Information($"Building {project.ToString()}");
-        DotNetBuild(project.ToString(),buildSettings);
-    }
-});
+    .Does(() =>
+    {
+        var buildSettings = new DotNetBuildSettings
+        {
+            Configuration = configuration,
+            MSBuildSettings = new DotNetMSBuildSettings()
+                                                         .WithProperty("Version", version)
+                                                         .WithProperty("AssemblyVersion", version)
+                                                         .WithProperty("FileVersion", version)
+        };
+        var projects = GetFiles("./**/**/*.csproj");
+        foreach (var project in projects)
+        {
+            Information($"Building {project.ToString()}");
+            DotNetBuild(project.ToString(), buildSettings);
+        }
+    });
 
 Task("Test")
     .IsDependentOn("Build")
-    .Does(() => { 
+    .Does(() =>
+    {
 
         Information("Checking coverage");
-        if(System.IO.File.Exists("result.cobertura.xml"))
+        if (System.IO.File.Exists("result.cobertura.xml"))
             System.IO.File.Delete("result.cobertura.xml");
-               
-        if(System.IO.Directory.Exists("coverageOutput"))
+
+        if (System.IO.Directory.Exists("coverageOutput"))
             System.IO.Directory.Delete("coverageOutput", true);
 
-        var testSetting =  new DotNetTestSettings
+        var testSetting = new DotNetTestSettings
         {
-             Configuration = configuration,
-             NoBuild = true, 
-             Verbosity = DotNetVerbosity.Minimal,
-             Filter = "Kind!=E2E",
+            Configuration = configuration,
+            NoBuild = true,
+            Verbosity = DotNetVerbosity.Minimal,
+            Filter = "Kind!=E2E",
         };
 
-        var coverletSetting = new CoverletSettings 
+        var coverletSetting = new CoverletSettings
         {
             CollectCoverage = true,
             CoverletOutputFormat = CoverletOutputFormat.cobertura,
@@ -91,28 +96,31 @@ Task("Test")
                        .WithFilter("[RabbitMq.Connector*]*IoC*");
 
         DotNetTest("./RabbitMq.Connect.sln", testSetting, coverletSetting);
-});
+    });
 
 Task("CheckCoverage")
     .IsDependentOn("Test")
     .Does(() =>
     {
-        Information("Running Report Generator..."); 
-        var pathFullXml = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory().ToString(),"coverageOutput/result.cobertura.xml");
-        var pathFullTxt = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory().ToString(),"coverageOutput/Summary.txt");
+        Information("Running Report Generator...");
+        var pathFullXml = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory().ToString(), "coverageOutput/result.cobertura.xml");
+        var pathFullTxt = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory().ToString(), "coverageOutput/Summary.txt");
 
-        var ps = new ProcessSettings 
-        { 
+        var ps = new ProcessSettings
+        {
             Arguments = $"\"-reports:./coverageOutput/result.cobertura.xml\" \"-targetdir:coverageOutput\" \"-reporttypes:Html;TextSummary\"",
-            RedirectStandardOutput = false 
-        };            
+            RedirectStandardOutput = false
+        };
 
-        ReportGenerator(new FilePath(pathFullXml), new DirectoryPath("./coverageOutput/"), new ReportGeneratorSettings  { ReportTypes = new []
+        ReportGenerator(new FilePath(pathFullXml), new DirectoryPath("./coverageOutput/"), new ReportGeneratorSettings
+        {
+            ReportTypes = new[]
         {
             ReportGeneratorReportType.TextSummary,
             ReportGeneratorReportType.Html,
-        }});
-        
+        }
+        });
+
         var summary = System.IO.File.ReadAllText($"{pathFullTxt}");
         const string patten = @"((Coverable lines|Covered lines|Line coverage): (?<value>\d+(.\d)?)%?)";
 
@@ -130,64 +138,69 @@ Task("CheckCoverage")
                 Warning($"The coverage percentage is under 94%");
             }
         }
-});
+    });
 
 Task("Pack")
   .IsDependentOn("CheckCoverage")
-  .Does(() => {
-   var settings = new DotNetPackSettings
-    {
-        Configuration = configuration,
-        OutputDirectory = artifactsDir,
-        NoBuild = true,
-        NoRestore = true,
-        MSBuildSettings = new DotNetMSBuildSettings()
-                        .WithProperty("PackageVersion", version)
-                        .WithProperty("Copyright", $"Copyright José Almir - {DateTime.Now.Year}")
-                        .WithProperty("Version", version)
-    };
-    
-    DotNetPack("./RabbitMq.Connect.sln", settings);
- });
+  .Does(() =>
+  {
+      var settings = new DotNetPackSettings
+      {
+          Configuration = configuration,
+          OutputDirectory = artifactsDir,
+          NoBuild = true,
+          NoRestore = true,
+          MSBuildSettings = new DotNetMSBuildSettings()
+                           .WithProperty("PackageVersion", version)
+                           .WithProperty("Copyright", $"Copyright José Almir - {DateTime.Now.Year}")
+                           .WithProperty("Version", version)
+      };
+
+      DotNetPack("./RabbitMq.Connect.sln", settings);
+  });
 
 Task("PublishNuget")
  .IsDependentOn("Pack")
- .Does(context => {
-   if (BuildSystem.GitHubActions.IsRunningOnGitHubActions)
-   {
-     foreach(var file in GetFiles("./.artifacts/*.nupkg"))
+ .Does(context =>
+ {
+     if (BuildSystem.GitHubActions.IsRunningOnGitHubActions)
      {
-       Information("Publishing {0}...", file.GetFilename().FullPath);
-       DotNetNuGetPush(file, new DotNetNuGetPushSettings {
-          ApiKey = context.EnvironmentVariable("NUGET_API_KEY"),
-          Source = "https://api.nuget.org/v3/index.json"
-       });
+         foreach (var file in GetFiles($"./artifacts/*.nupkg"))
+         {
+             Information("Publishing {0}...", file.GetFilename().FullPath);
+             DotNetNuGetPush(file, new DotNetNuGetPushSettings
+             {
+                 ApiKey = context.EnvironmentVariable("NUGET_API_KEY"),
+                 Source = "https://api.nuget.org/v3/index.json"
+             });
+         }
      }
-   }
- }); 
- 
- Task("PublishGithub")
-  .IsDependentOn("PublishNuget")
-  .Does(context => {
-  if (BuildSystem.GitHubActions.IsRunningOnGitHubActions)
-   {
-      foreach(var file in GetFiles("./.artifacts/*.nupkg"))
-      {
-        Information("Publishing {0}...", file.GetFilename().FullPath);
-        DotNetNuGetPush(file, new DotNetNuGetPushSettings {
-              ApiKey = EnvironmentVariable("GITHUB_TOKEN"),
-              Source = "https://nuget.pkg.github.com/threenine/index.json"
-        });
-      } 
-   } 
- }); 
+ });
+
+Task("PublishGithub")
+ .IsDependentOn("PublishNuget")
+ .Does(context =>
+ {
+     if (BuildSystem.GitHubActions.IsRunningOnGitHubActions)
+     {
+         foreach (var file in GetFiles($"./artifacts/*.nupkg"))
+         {
+             Information("Publishing {0}...", file.GetFilename().FullPath);
+             DotNetNuGetPush(file, new DotNetNuGetPushSettings
+             {
+                 ApiKey = EnvironmentVariable("GITHUB_TOKEN"),
+                 Source = "https://nuget.pkg.github.com/threenine/index.json"
+             });
+         }
+     }
+ });
 
 private void DeleteLinesFromFile(string pathFullTxt, string strLineToDelete)
 {
     string strSearchText = strLineToDelete;
     string strOldText;
     string n = "";
-        
+
     StreamReader sr = System.IO.File.OpenText(pathFullTxt);
     while ((strOldText = sr.ReadLine()) != null)
     {
