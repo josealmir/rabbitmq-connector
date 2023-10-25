@@ -6,10 +6,11 @@
 #tool dotnet:?package=dotnet-reportgenerator-globaltool&version=5.1.10
 
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.IO.Compression;
-using Path = System.IO.Path;
+
 using System.Security.AccessControl;
 using System.Text.RegularExpressions;
 using System.Reflection.Metadata;
@@ -163,17 +164,21 @@ Task("PublishNuget")
  .IsDependentOn("Pack")
  .Does(context =>
  {
-    Information("PublishNuget: {0 }", BuildSystem.GitHubActions.IsRunningOnGitHubActions);
+    Information("PublishNuget: {0}", BuildSystem.GitHubActions.IsRunningOnGitHubActions);
+    var fullPathArtifact = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory().ToString(), "/artifacts/*.nupkg");
+
+    Information(fullPathArtifact);
     if (BuildSystem.GitHubActions.IsRunningOnGitHubActions)
     {
-         foreach (var file in GetFiles("./artifacts/*.nupkg"))
+         foreach (var file in GetFiles("./**/artifacts/*.nupkg"))
          {
-             Information("Publishing {0}...", file.GetFilename().FullPath);
-             DotNetNuGetPush(file, new DotNetNuGetPushSettings
-             {
-                 ApiKey = context.EnvironmentVariable("NUGET_API_KEY"),
-                 Source = "https://api.nuget.org/v3/index.json"
-             });
+            Information("Publishing {0}...", file.GetFilename().FullPath);
+            DotNetNuGetPush(file, new DotNetNuGetPushSettings
+            {
+                ApiKey = context.EnvironmentVariable("NUGET_API_KEY"),
+                
+                Source = "https://api.nuget.org/v3/index.json"
+            });
          }
     }
  });
@@ -182,19 +187,20 @@ Task("PublishGithub")
  .IsDependentOn("PublishNuget")
  .Does(context =>
  {
-     Information("PublishGithub: {0 }", BuildSystem.GitHubActions.IsRunningOnGitHubActions);
-     if (BuildSystem.GitHubActions.IsRunningOnGitHubActions)
-     {
-         foreach (var file in GetFiles("./artifacts/*.nupkg"))
-         {
-             Information("Publishing {0}...", file.GetFilename().FullPath);
-             DotNetNuGetPush(file, new DotNetNuGetPushSettings
-             {
-                 ApiKey = EnvironmentVariable("GITHUB_TOKEN"),
-                 Source = "https://nuget.pkg.github.com/threenine/index.json"
-             });
-         }
-     }
+    Information("PublishGithub: {0 }", BuildSystem.GitHubActions.IsRunningOnGitHubActions);
+    var fullPathArtifact = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory().ToString(), "/artifacts/*.nupkg");
+    if (BuildSystem.GitHubActions.IsRunningOnGitHubActions)
+    {
+        foreach (var file in GetFiles(fullPathArtifact))
+        {
+            Information("Publishing {0}...", file.GetFilename().FullPath);
+            DotNetNuGetPush(file, new DotNetNuGetPushSettings
+            {
+                ApiKey = EnvironmentVariable("GITHUB_TOKEN"),
+                Source = "https://nuget.pkg.github.com/threenine/index.json"
+            });
+        }
+    }
  });
 
 private void DeleteLinesFromFile(string pathFullTxt, string strLineToDelete)
