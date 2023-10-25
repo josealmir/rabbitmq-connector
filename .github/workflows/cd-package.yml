@@ -3,12 +3,6 @@ name: CD-Run-Package
 on:
   push:
     branches: [ "main" ]
-    paths:
-      - "**.cs"
-      - ".editorconfig"
-  merge_group: 
-    branches: [ "main" ]
-
 jobs:
   # Label of the container job
   build:
