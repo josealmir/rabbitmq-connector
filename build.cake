@@ -166,7 +166,7 @@ Task("PublishNuget")
     Information("PublishNuget: {0 }", BuildSystem.GitHubActions.IsRunningOnGitHubActions);
     if (BuildSystem.GitHubActions.IsRunningOnGitHubActions)
     {
-         foreach (var file in GetFiles("./artifacts/*.nupkg"))
+         foreach (var file in GetFiles("./**/artifacts/*.nupkg"))
          {
              Information("Publishing {0}...", file.GetFilename().FullPath);
              DotNetNuGetPush(file, new DotNetNuGetPushSettings
@@ -185,7 +185,7 @@ Task("PublishGithub")
      Information("PublishGithub: {0 }", BuildSystem.GitHubActions.IsRunningOnGitHubActions);
      if (BuildSystem.GitHubActions.IsRunningOnGitHubActions)
      {
-         foreach (var file in GetFiles("./artifacts/*.nupkg"))
+         foreach (var file in GetFiles("./**/artifacts/*.nupkg"))
          {
              Information("Publishing {0}...", file.GetFilename().FullPath);
              DotNetNuGetPush(file, new DotNetNuGetPushSettings
