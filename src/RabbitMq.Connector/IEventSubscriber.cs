@@ -1,10 +1,9 @@
 ﻿using RabbitMq.Connector.Model;
 
-namespace RabbitMq.Connector
+namespace RabbitMq.Connector;
+
+public interface IEventSubscriber
 {
-    public interface IEventSubscriber
-    {
-        Subscription<T> Subscribe<T>() where T : Event;
-        Task StartListeningAsync();
-    }
+    Subscription<T> Subscribe<T>() where T : Event;
+    Task StartListeningAsync();
 }
