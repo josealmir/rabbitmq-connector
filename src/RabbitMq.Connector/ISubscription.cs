@@ -1,10 +1,7 @@
-﻿using System;
+﻿namespace RabbitMq.Connector;
 
-namespace RabbitMq.Connector
+public interface ISubscription
 {
-    public interface ISubscription
-    {
-        Type EventType { get; }
-        string EventName { get; }
-    }
+    Type EventType { get; }
+    string EventName { get; }
 }

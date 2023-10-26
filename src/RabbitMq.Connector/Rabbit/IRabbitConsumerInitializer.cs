@@ -1,8 +1,7 @@
 ﻿
-namespace RabbitMq.Connector.Rabbit
+namespace RabbitMq.Connector.Rabbit;
+
+public interface IRabbitConsumerInitializer
 {
-    public interface IRabbitConsumerInitializer
-    {
-        Task InitializeConsumersChannelsAsync();
-    }
+    Task InitializeConsumersChannelsAsync();
 }
