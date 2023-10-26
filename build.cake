@@ -165,9 +165,7 @@ Task("PublishNuget")
  .Does(context =>
  {
     Information("PublishNuget: {0}", BuildSystem.GitHubActions.IsRunningOnGitHubActions);
-    var fullPathArtifact = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory().ToString(), "/artifacts/*.nupkg");
-
-    Information(fullPathArtifact);
+    
     if (BuildSystem.GitHubActions.IsRunningOnGitHubActions)
     {
          foreach (var file in GetFiles("./**/artifacts/*.nupkg"))
@@ -187,11 +185,11 @@ Task("PublishGithub")
  .IsDependentOn("PublishNuget")
  .Does(context =>
  {
-    Information("PublishGithub: {0 }", BuildSystem.GitHubActions.IsRunningOnGitHubActions);
-    var fullPathArtifact = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory().ToString(), "/artifacts/*.nupkg");
+    Information("PublishGithub: {0}", BuildSystem.GitHubActions.IsRunningOnGitHubActions);
+    
     if (BuildSystem.GitHubActions.IsRunningOnGitHubActions)
     {
-        foreach (var file in GetFiles(fullPathArtifact))
+        foreach (var file in GetFiles("./**/artifacts/*.nupkg"))
         {
             Information("Publishing {0}...", file.GetFilename().FullPath);
             DotNetNuGetPush(file, new DotNetNuGetPushSettings
