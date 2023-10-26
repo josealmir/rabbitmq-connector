@@ -1,8 +1,7 @@
-﻿namespace RabbitMq.Connector.Rabbit
+﻿namespace RabbitMq.Connector.Rabbit;
+
+public interface IExchangeQueueCreator
 {
-    public interface IExchangeQueueCreator
-    {
-        void EnsureQueueIsCreated();
-        void EnsureExchangeIsCreated();
-    }
+    void EnsureQueueIsCreated();
+    void EnsureExchangeIsCreated();
 }

@@ -1,10 +1,9 @@
 ﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-namespace RabbitMq.Connector.Rabbit
+namespace RabbitMq.Connector.Rabbit;
+
+public interface IFailureEventService
 {
-    public interface IFailureEventService
-    {
-        Task HandleExceptionEventAsync(IModel consumerChannel, BasicDeliverEventArgs eventArgs, object @event, Exception ex);
-    }
+    Task HandleExceptionEventAsync(IModel consumerChannel, BasicDeliverEventArgs eventArgs, object @event, Exception ex);
 }
