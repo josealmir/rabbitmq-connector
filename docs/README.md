@@ -1,4 +1,4 @@
-# RabbitMq Connector
+# RabbitMQ Connector
 
 This package is an implementation of the connection whit RabbitMQ that using MediatR package
 
