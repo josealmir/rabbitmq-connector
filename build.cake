@@ -195,7 +195,7 @@ Task("PublishGithub")
             DotNetNuGetPush(file, new DotNetNuGetPushSettings
             {
                 ApiKey = EnvironmentVariable("GITHUB_TOKEN"),
-                Source = "https://nuget.pkg.github.com/threenine/index.json"
+                Source = "https://nuget.pkg.github.com/josealmir/index.json"
             });
         }
     }
