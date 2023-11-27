@@ -6,9 +6,9 @@ public class RabbitMqEventBusOptions
 {
     public const string SectionName = "RabbitMq";
     [Required]
-    public virtual string Username { get; set; } = "Guest";
+    public virtual string Username { get; set; } = "guest";
     [Required]
-    public virtual string Password { get; set; } = "Guest";
+    public virtual string Password { get; set; } = "guest";
     [Required]
     public virtual int Port { get; set; } = 5672;
     [Required]
