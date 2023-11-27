@@ -32,9 +32,9 @@ public sealed class RabbitConsumerHandler : IRabbitConsumerHandler
         using var scope = _serviceScopeFactory.CreateScope();
         var correlationId = eventArgs.Correlation();
         var eventName = eventArgs.RoutingKey;
-        LogContext.PushProperty("CorrelationId", correlationId);
+        LogContext.PushProperty("X-Correlation-Id", correlationId);
         
-        using (_logger.BeginScope(new Dictionary<string, object> { ["CorrelationId"] = correlationId, ["RequestPath"] = eventName }))
+        using (_logger.BeginScope(new Dictionary<string, object> { ["X-Correlation-Id"] = correlationId, ["RequestPath"] = eventName }))
         {
             try
             {

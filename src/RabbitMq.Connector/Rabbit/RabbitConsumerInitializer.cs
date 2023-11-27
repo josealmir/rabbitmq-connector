@@ -52,7 +52,7 @@ public sealed class RabbitConsumerInitializer : IRabbitConsumerInitializer, IDis
         consumer.Received += (sender, ea) => _rabbitConsumerHandler.HandleAsync(channel, ea);
 
         channel.BasicConsume(queue: _rabbitMqEventBusOptions.QueueName, autoAck: false, consumer);
-        channel.CallbackException += async (sender, ea) =>
+        channel.CallbackException += (sender, ea) =>
         {
             channel.Dispose();
             InitializeConsumer(_persistentConnection.CreateModel());
