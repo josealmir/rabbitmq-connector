@@ -3,28 +3,30 @@ using RabbitMQ.Client;
 using System.Reflection;
 using RabbitMq.Connector.Rabbit;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace RabbitMq.Connector.IoC;
 
 public static class RabbitBusDependencyResolver
 {
-    private static readonly RabbitMqEventBusOptions _options = new();
-    public static void AddRabbitEventBus(this IServiceCollection services, Action<RabbitMqEventBusOptions> config)
+    private static RabbitMqEventBusOptions _options = new();
+    public static void AddRabbitEventBus(this IServiceCollection services, Action<RabbitMqEventBusOptions> option)
     {
-        ArgumentNullException.ThrowIfNull(config);
+        ArgumentNullException.ThrowIfNull(option);
 
-        config.Invoke(_options);
-              
+        option.Invoke(_options);
+        services.Configure(option); 
+
         if (!services.Any(s => s.ServiceType == typeof(IMediator)))
             services.AddMediatR(options => options.RegisterServicesFromAssembly(Assembly.GetCallingAssembly()));
-
+        
         services.AddScoped<IFailureEventService, FailureEventService>();
         services.AddSingleton<IEventPublisher, RabbitEventPublisher>();
         services.AddSingleton<ISubscriptionManager, SubscriptionManager>();
-        services.AddSingleton<IRabbitConsumerInitializer, RabbitConsumerInitializer>();
-        services.AddSingleton<IRabbitConsumerHandler, RabbitConsumerHandler>();
         services.AddSingleton<IEventSubscriber, RabbitMqEventSubscriber>();
         services.AddSingleton<IExchangeQueueCreator, ExchangeQueueCreator>();
+        services.AddSingleton<IRabbitConsumerHandler, RabbitConsumerHandler>();
+        services.AddSingleton<IRabbitConsumerInitializer, RabbitConsumerInitializer>();        
         services.AddSingleton(sp => sp.GetRequiredService<IServiceScopeFactory>());
         services.AddSingleton<IConnectionFactory>(sp =>
         {
