@@ -11,7 +11,7 @@ public sealed class RabbitConsumerInitializer : IRabbitConsumerInitializer, IDis
     private readonly ILogger<RabbitConsumerInitializer> _logger;
     private readonly IExchangeQueueCreator _exchangeQueueCreator;
     private readonly RabbitMqEventBusOptions _rabbitMqEventBusOptions;
-    private readonly List<IModel> _channels = new List<IModel>();
+    private readonly List<IModel> _channels = [];
 
     public RabbitConsumerInitializer(
         IRabbitMqPersistentConnection persistentConnection,
@@ -63,7 +63,7 @@ public sealed class RabbitConsumerInitializer : IRabbitConsumerInitializer, IDis
 
     private void EnsureQueueAndExchangeAreCreated()
     {
-        if (_persistentConnection.IsConnected)
+        if (!_persistentConnection.IsConnected)
             _persistentConnection.TryConnect();
         
         using var channel = _persistentConnection.CreateModel();

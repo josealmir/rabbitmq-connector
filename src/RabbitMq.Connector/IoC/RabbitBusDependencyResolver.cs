@@ -3,7 +3,6 @@ using RabbitMQ.Client;
 using System.Reflection;
 using RabbitMq.Connector.Rabbit;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace RabbitMq.Connector.IoC;
 
