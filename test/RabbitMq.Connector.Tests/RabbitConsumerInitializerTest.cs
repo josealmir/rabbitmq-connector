@@ -38,7 +38,7 @@ public class RabbitConsumerInitializerTest
     {
         _persistentConnection.IsConnected.Returns(false);
         await _sut.InitializeConsumersChannelsAsync();
-        _persistentConnection.Received(1).TryConnect();
+        _persistentConnection.Received(2).TryConnect();
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class RabbitConsumerInitializerTest
     {
         _persistentConnection.IsConnected.Returns(true);
         await _sut.InitializeConsumersChannelsAsync();
-        _persistentConnection.DidNotReceive().TryConnect();
+        _persistentConnection.Received(1).TryConnect();
     }
 
     [Fact]

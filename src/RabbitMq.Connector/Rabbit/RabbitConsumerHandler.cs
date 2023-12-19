@@ -67,6 +67,7 @@ public sealed class RabbitConsumerHandler : IRabbitConsumerHandler
 
         try
         {
+           
             dynamic result = await mediator.Send(@event);
 
             if (result?.IsSuccess)
@@ -76,7 +77,7 @@ public sealed class RabbitConsumerHandler : IRabbitConsumerHandler
             }
             else
             {
-                _logger.LogWarning("Failed to handled Event", result?.Exception as Exception);
+                _logger.LogWarning("Failed to handled Event {0}", result?.Exception as Exception);
                 await failureEventServiceFactory().HandleExceptionEventAsync(consumerChannel, eventArgs, @event, result?.Exception);
             }
         }
