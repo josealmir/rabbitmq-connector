@@ -43,13 +43,13 @@ public sealed class RabbitMqEventSubscriber : IEventSubscriber
         if (!_persistentConnection.IsConnected) 
             _persistentConnection.TryConnect();
 
-        _logger.LogInformation($"Binding queue to exchange with event {subscription.EventName}");
+        _logger.LogInformation("Binding queue to exchange with event {0}", subscription.EventName);
         using var channel = _persistentConnection.CreateModel();
         channel.QueueBind(
             queue: _rabbitMqEventBusOptions.QueueName,
             exchange: _rabbitMqEventBusOptions.ExchangeName,
             routingKey: subscription.EventName
         );
-        _logger.LogInformation($"Queue successfully bound to exchange with event {subscription.EventName}");
+        _logger.LogInformation("Queue successfully bound to exchange with event {0}", subscription.EventName);
     }
 }

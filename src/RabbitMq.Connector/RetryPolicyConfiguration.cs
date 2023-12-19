@@ -76,5 +76,4 @@ public class RetryPolicyConfiguration<T> where T : Event
         DiscardEvent = f => shouldDiscardEventAfterFail;
         return this;
     }
-
 }

@@ -8,7 +8,7 @@ public sealed class RabbitMqPersistentConnection : IRabbitMqPersistentConnection
 {
     private readonly ILogger<RabbitMqEventBusOptions> _logger;
     private readonly IConnectionFactory _connectionFactory;
-    readonly object sync_root = new object();
+    readonly object sync_root = new();
     private IConnection _connection;
     private bool _disposed;
 
@@ -57,7 +57,6 @@ public sealed class RabbitMqPersistentConnection : IRabbitMqPersistentConnection
         {
             throw new InvalidOperationException("No RabbitMQ connections are available to perform this action");
         }
-
 
         var model = _connection.CreateModel();
         _logger.LogDebug("Model created");
