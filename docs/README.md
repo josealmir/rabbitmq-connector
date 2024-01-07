@@ -18,8 +18,9 @@ using RabbitMq.Connector.IoC;
 
 public class Startup 
 {
-    public void ConfigureServices IServiceCollection services)
+    public void ConfigureServices(IServiceCollection services)
     {
+        // Connect with UserName and Password
         services.AddRabbitEventBus(option => 
         {
             option.Username = "";
@@ -32,6 +33,15 @@ public class Startup
             option.ConsumersCount = 10;
             option.DeadLetterName = "";
         });
+
+        // Or connect with Uri
+
+        services.AddRabbitEventBusUseUri(option => 
+        {
+            option.QueueName = "queue-name";
+            option.ExchangeName = "exchange-name";
+            option.ConnectionUri = "amqp://guest:guest@localhost:5672/";
+        });
     }
 }
 ```
@@ -39,7 +49,7 @@ public class Startup
 ```csharp
 using RabbitMq.Connector.Model;
 
-// Here exist the possible add Headar property in message
+// Here exist the possible add Header property in message
 
 public class RabbitMQEvent : Event 
 {
@@ -56,7 +66,7 @@ public class BusinessLayer
     }
 }
 ```
-### Consumer your `Event` ceated
+### Consumer your `Event` created
 ```csharp
 public class Worker
 {        
