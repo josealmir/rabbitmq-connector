@@ -11,25 +11,11 @@ public static class RabbitBusDependencyResolver
     private static RabbitMqEventBusOptions _options = new();
     public static void AddRabbitEventBus(this IServiceCollection services, Action<RabbitMqEventBusOptions> option)
     {
-        ArgumentNullException.ThrowIfNull(option);
-
-        option.Invoke(_options);
-        services.Configure(option); 
-
-        if (!services.Any(s => s.ServiceType == typeof(IMediator)))
-            services.AddMediatR(options => options.RegisterServicesFromAssembly(Assembly.GetCallingAssembly()));
-        
-        services.AddScoped<IFailureEventService, FailureEventService>();
-        services.AddSingleton<IEventPublisher, RabbitEventPublisher>();
-        services.AddSingleton<ISubscriptionManager, SubscriptionManager>();
-        services.AddSingleton<IEventSubscriber, RabbitMqEventSubscriber>();
-        services.AddSingleton<IExchangeQueueCreator, ExchangeQueueCreator>();
-        services.AddSingleton<IRabbitConsumerHandler, RabbitConsumerHandler>();
-        services.AddSingleton<IRabbitConsumerInitializer, RabbitConsumerInitializer>();        
-        services.AddSingleton(sp => sp.GetRequiredService<IServiceScopeFactory>());
+        services.RabbitConfigureDependency();
+        services.RabbitConfigureOption(option);                        
         services.AddSingleton<IConnectionFactory>(sp =>
         {
-            return new ConnectionFactory()
+            return new ConnectionFactory
             {
                 VirtualHost = _options.VirtualHost,
                 HostName = _options.HostName,
@@ -44,5 +30,46 @@ public static class RabbitBusDependencyResolver
             };
         });
         services.AddSingleton<IRabbitMqPersistentConnection, RabbitMqPersistentConnection>();
+    }
+
+    public static void AddRabbitEventBusUseUri(this IServiceCollection services, Action<RabbitMqEventBusOptions> option)
+    {
+        services.RabbitConfigureDependency();
+        services.RabbitConfigureOption(option);
+        services.AddSingleton<IConnectionFactory>(sp => 
+        {
+            return new ConnectionFactory
+            {
+                Uri = new Uri(_options.ConnectionUri),
+                ContinuationTimeout = TimeSpan.FromSeconds(30),
+                RequestedConnectionTimeout = TimeSpan.FromSeconds(30),
+                HandshakeContinuationTimeout = TimeSpan.FromSeconds(30),
+                SocketReadTimeout = TimeSpan.FromSeconds(30),
+                SocketWriteTimeout = TimeSpan.FromSeconds(30),
+            };
+        });
+        services.AddSingleton<IRabbitMqPersistentConnection, RabbitMqPersistentConnection>();
+    }
+
+    internal static void RabbitConfigureOption(this IServiceCollection services, Action<RabbitMqEventBusOptions> option)
+    {
+        ArgumentNullException.ThrowIfNull(option);
+        option.Invoke(_options);
+        services.Configure(option);
+    }
+
+    internal static void RabbitConfigureDependency(this IServiceCollection services)
+    {
+        if (!services.Any(s => s.ServiceType == typeof(IMediator)))
+            services.AddMediatR(options => options.RegisterServicesFromAssembly(Assembly.GetCallingAssembly()));
+
+        services.AddScoped<IFailureEventService, FailureEventService>();
+        services.AddSingleton<IEventPublisher, RabbitEventPublisher>();
+        services.AddSingleton<ISubscriptionManager, SubscriptionManager>();
+        services.AddSingleton<IEventSubscriber, RabbitMqEventSubscriber>();
+        services.AddSingleton<IExchangeQueueCreator, ExchangeQueueCreator>();
+        services.AddSingleton<IRabbitConsumerHandler, RabbitConsumerHandler>();
+        services.AddSingleton<IRabbitConsumerInitializer, RabbitConsumerInitializer>();
+        services.AddSingleton(sp => sp.GetRequiredService<IServiceScopeFactory>());    
     }
 }

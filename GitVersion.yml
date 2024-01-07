@@ -12,7 +12,7 @@ branches:
     tracks-release-branches: false
     is-mainline: true
   release:
-    regex: ^releases?[/-]
+    regex: ^release(s)?[/-]
     tag: ''
     increment: Minor
     is-release-branch: true
