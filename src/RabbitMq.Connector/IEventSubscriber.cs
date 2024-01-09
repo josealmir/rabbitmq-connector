@@ -1,9 +1,11 @@
-﻿using RabbitMq.Connector.Model;
+﻿using System.Threading.Tasks;
+using RabbitMq.Connector.Model;
 
-namespace RabbitMq.Connector;
-
-public interface IEventSubscriber
+namespace RabbitMq.Connector
 {
-    Subscription<T> Subscribe<T>() where T : Event;
-    Task StartListeningAsync();
+    public interface IEventSubscriber
+    {
+        Subscription<T> Subscribe<T>() where T : Event;
+        Task StartListeningAsync();
+    }
 }

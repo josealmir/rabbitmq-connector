@@ -1,18 +1,20 @@
-﻿using MediatR;
+﻿using System;
+using MediatR;
 using RabbitMq.Connector.Model;
 
-namespace RabbitMq.Connector;
-
-public class Failure<T> : INotification where T : Event
+namespace RabbitMq.Connector
 {
-    public Failure(T @event, int retryAttempt, Exception exception)
+    public class Failure<T> : INotification where T : Event
     {
-        Event = @event;
-        RetryAttempt = retryAttempt;
-        Exception = exception;
-    }
+        public Failure(T @event, int retryAttempt, Exception exception)
+        {
+            Event = @event;
+            RetryAttempt = retryAttempt;
+            Exception = exception;
+        }
 
-    public T Event { get; }
-    public int RetryAttempt { get; }
-    public Exception Exception { get; }
+        public T Event { get; }
+        public int RetryAttempt { get; }
+        public Exception Exception { get; }
+    }
 }

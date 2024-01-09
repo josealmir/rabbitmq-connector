@@ -1,23 +1,25 @@
-﻿using RabbitMq.Connector.Model;
+﻿using System;
+using RabbitMq.Connector.Model;
 
-namespace RabbitMq.Connector;
-
-public class Subscription<T> : ISubscription where T : Event
+namespace RabbitMq.Connector
 {
-    private readonly Type _eventType;
-    internal RetryPolicyConfiguration<T> RetryPolicyConfiguration { get; }
-
-    public string EventName => _eventType.Name;
-
-    public Type EventType => _eventType;
-
-    public Subscription()
+    public class Subscription<T> : ISubscription where T : Event
     {
-        RetryPolicyConfiguration = new RetryPolicyConfiguration<T>();
-        _eventType = typeof(T);
+        private readonly Type _eventType;
+        internal RetryPolicyConfiguration<T> RetryPolicyConfiguration { get; }
+
+        public string EventName => _eventType.Name;
+
+        public Type EventType => _eventType;
+
+        public Subscription()
+        {
+            RetryPolicyConfiguration = new RetryPolicyConfiguration<T>();
+            _eventType = typeof(T);
+        }
+
+
+        public void OnFailure(Action<RetryPolicyConfiguration<T>> config)
+            => config(RetryPolicyConfiguration);
     }
-
-
-    public void OnFailure(Action<RetryPolicyConfiguration<T>> config)
-        => config(RetryPolicyConfiguration);
 }

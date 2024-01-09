@@ -1,12 +1,14 @@
-﻿using RabbitMQ.Client;
+﻿using System;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-namespace RabbitMq.Connector.Rabbit;
-
-public interface IRabbitMqPersistentConnection : IDisposable
+namespace RabbitMq.Connector.Rabbit
 {
-    bool IsConnected { get; }
-    void TryConnect();
-    IModel CreateModel();
-    EventingBasicConsumer CreateConsumer(IModel model);
+    public interface IRabbitMqPersistentConnection : IDisposable
+    {
+        bool IsConnected { get; }
+        void TryConnect();
+        IModel CreateModel();
+        EventingBasicConsumer CreateConsumer(IModel model);
+    }
 }

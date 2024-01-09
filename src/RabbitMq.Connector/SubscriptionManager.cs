@@ -1,26 +1,29 @@
-﻿using RabbitMq.Connector.Model;
+﻿using System.Collections.Generic;
+using System.Linq;
+using RabbitMq.Connector.Model;
 
-namespace RabbitMq.Connector;
-
-public sealed class SubscriptionManager : ISubscriptionManager
+namespace RabbitMq.Connector
 {
-    private readonly IList<ISubscription> _subscription;
-
-    public SubscriptionManager()
-        => _subscription = new List<ISubscription>();
-
-    public Subscription<T> AddSubscription<T>() where T : Event
+    public sealed class SubscriptionManager : ISubscriptionManager
     {
-        var subscription = new Subscription<T>();
-        _subscription.Add(subscription);
-        return subscription;
+        private readonly IList<ISubscription> _subscription;
+
+        public SubscriptionManager()
+            => _subscription = new List<ISubscription>();
+
+        public Subscription<T> AddSubscription<T>() where T : Event
+        {
+            var subscription = new Subscription<T>();
+            _subscription.Add(subscription);
+            return subscription;
+        }
+
+        public Subscription<T> FindSubscription<T>() where T : Event 
+            => _subscription
+                        .OfType<Subscription<T>>()
+                        .FirstOrDefault(s => s.EventName == typeof(T).Name);
+
+        public ISubscription FindSubscription(string eventName)
+            => _subscription.FirstOrDefault(s => s.EventName == eventName);
     }
-
-    public Subscription<T> FindSubscription<T>() where T : Event 
-        => _subscription
-                    .OfType<Subscription<T>>()
-                    .FirstOrDefault(s => s.EventName == typeof(T).Name);
-
-    public ISubscription FindSubscription(string eventName)
-        => _subscription.FirstOrDefault(s => s.EventName == eventName);
 }
