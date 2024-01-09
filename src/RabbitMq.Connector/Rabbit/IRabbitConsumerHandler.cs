@@ -1,9 +1,11 @@
-﻿using RabbitMQ.Client;
+﻿using System.Threading.Tasks;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-namespace RabbitMq.Connector.Rabbit;
-
-public interface IRabbitConsumerHandler
+namespace RabbitMq.Connector.Rabbit
 {
-    Task HandleAsync(IModel consumerChannel, BasicDeliverEventArgs eventArgs);
+    public interface IRabbitConsumerHandler
+    {
+        Task HandleAsync(IModel consumerChannel, BasicDeliverEventArgs eventArgs);
+    }
 }

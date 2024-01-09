@@ -1,15 +1,17 @@
-﻿
-namespace RabbitMq.Connector.Rabbit;
+﻿using System;
 
-internal class FailedToConnectToRabbitMqException : Exception
+namespace RabbitMq.Connector.Rabbit
 {
-    public FailedToConnectToRabbitMqException() : base("Failed to connect to RabbitMq")
+    internal class FailedToConnectToRabbitMqException : Exception
     {
+        public FailedToConnectToRabbitMqException() : base("Failed to connect to RabbitMq")
+        {
 
-    }
+        }
 
-    public FailedToConnectToRabbitMqException(Exception innerException) : base("Failed to connect to RabbitMq", innerException)
-    {
+        public FailedToConnectToRabbitMqException(Exception innerException) : base("Failed to connect to RabbitMq", innerException)
+        {
 
+        }
     }
 }

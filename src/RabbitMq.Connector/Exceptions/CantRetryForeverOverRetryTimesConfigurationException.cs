@@ -1,10 +1,12 @@
-﻿
-namespace RabbitMq.Connector.Exceptions;
+﻿using System;
 
-public class CantRetryForeverOverRetryTimesConfigurationException : Exception
+namespace RabbitMq.Connector.Exceptions
 {
-    public CantRetryForeverOverRetryTimesConfigurationException() : base("Can't retry forever over Retry Times configuration.")
+    public class CantRetryForeverOverRetryTimesConfigurationException : Exception
     {
+        public CantRetryForeverOverRetryTimesConfigurationException() : base("Can't retry forever over Retry Times configuration.")
+        {
 
+        }
     }
 }
