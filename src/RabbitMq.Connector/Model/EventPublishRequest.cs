@@ -1,18 +1,21 @@
-﻿namespace RabbitMq.Connector.Model;
+﻿using System.Collections.Generic;
 
-public sealed class EventPublishRequest
+namespace RabbitMq.Connector.Model
 {
-    public EventPublishRequest(string eventBody, string eventId, string eventName, IDictionary<string, object> headers)
+    public sealed class EventPublishRequest
     {
-        EventBody = eventBody;
-        EventName = eventName;
-        EventId = eventId;
-        Headers = headers;
+        public EventPublishRequest(string eventBody, string eventId, string eventName, IDictionary<string, object> headers)
+        {
+            EventBody = eventBody;
+            EventName = eventName;
+            EventId = eventId;
+            Headers = headers;
+        }
+
+        public string EventBody { get; }
+        public string EventId { get; }
+        public string EventName { get; }
+        public IDictionary<string, object> Headers { get; private set; } = new Dictionary<string, object>();
+
     }
-
-    public string EventBody { get; }
-    public string EventId { get; }
-    public string EventName { get; }
-    public IDictionary<string, object> Headers { get; private set; } = new Dictionary<string, object>();
-
 }
