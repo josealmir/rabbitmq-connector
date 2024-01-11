@@ -31,7 +31,9 @@ namespace RabbitMq.Connector.Rabbit
             _options = options.Value;
         }
 
-        public async Task PublishAsync<T>(T @event) where T : Event
+    public async Task PublishAsync<T>(T @event) where T : Event
+    {
+        await Task.Run( () => 
         {
             _exchangeQueueCreator.EnsureExchangeIsCreated();
             var eventName = @event.GetType().Name;
@@ -49,13 +51,16 @@ namespace RabbitMq.Connector.Rabbit
                 basicProperties: props,
                 body: body);
             _logger.LogDebug("Event published");
-        }
+        });
+    }
 
 
         public Task PublishManyAsync(Event[] events)
             => PublishManyAsync(events.Select(e => new EventPublishRequest(JsonSerializer.Serialize(e, options: new JsonSerializerOptions().Configure()), e.EventId, e.Name, e.Headers)).ToArray());
 
-        public async Task PublishManyAsync(EventPublishRequest[] publishRequests)
+    public async Task PublishManyAsync(EventPublishRequest[] publishRequests)
+    {
+        await Task.Run(() => 
         {
             _exchangeQueueCreator.EnsureExchangeIsCreated();
             _logger.LogDebug("Publishing {0} events", publishRequests.Length);
@@ -64,7 +69,7 @@ namespace RabbitMq.Connector.Rabbit
 
             using var channel = _persistentConnection.CreateModel();
             var batchPublish = channel.CreateBasicPublishBatch();
-        
+            
             foreach (var publishRequest in publishRequests)
             {
                 var props = channel.CreateBasicProperties();
@@ -78,6 +83,6 @@ namespace RabbitMq.Connector.Rabbit
             _logger.LogDebug("Publishing batch events");
             batchPublish.Publish();
             _logger.LogDebug("All events were published");
-        }
+        });
     }
 }
