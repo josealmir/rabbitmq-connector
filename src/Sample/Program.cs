@@ -1,5 +1,6 @@
 using Sample;
 using RabbitMq.Connector.IoC;
+using static Sample.Worker;
 
 
 IHost host = Host.CreateDefaultBuilder(args)
@@ -15,13 +16,15 @@ IHost host = Host.CreateDefaultBuilder(args)
         //     option.ConsumersCount = 10;
         //     option.Port = 5672;
         // });
-            
+        
+        services.AddMediatR(options => { options.RegisterServicesFromAssembly(typeof(EventTeste).Assembly);});
         services.AddRabbitEventBusUseUri(option => 
         {
             option.QueueName = "queue-name";
             option.ExchangeName = "exchange-name";
             option.ConnectionUri = "amqp://guest:guest@localhost:5672/";
         });
+
         services.AddHostedService<Worker>();
     })
     .Build();
