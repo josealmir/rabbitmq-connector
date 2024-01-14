@@ -1,3 +1,5 @@
+using MediatR;
+using OperationResult;
 using RabbitMq.Connector;
 using RabbitMq.Connector.Model;
 
@@ -7,6 +9,7 @@ public class Worker : BackgroundService
 {
     private readonly ILogger<Worker> _logger;
     private readonly IEventSubscriber _eventSubscriber;
+    private bool _startedListening;
 
     public Worker(ILogger<Worker> logger, IEventSubscriber eventSubscriber)
     {
@@ -18,15 +21,34 @@ public class Worker : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);    
+            if (!_startedListening)
+            {
+                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);    
             
-            _eventSubscriber.Subscribe<EventTeste>()
-                            .OnFailure(retry => retry.ShouldRetry());
+                _eventSubscriber.Subscribe<EventTeste>()
+                                .OnFailure(retry => retry.ShouldRetry());
+                
+                await _eventSubscriber.StartListeningAsync();
+                _startedListening = true;
+            }
 
-            await Task.Delay(1000, stoppingToken);                            
+            _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+            await Task.Delay(1000, stoppingToken);
         }
     }
 
-    public class EventTeste: Event 
-    { }
+    public class EventTeste: Event, INotification
+    { 
+        public int Count { get; set; }
+    }
+
+    public class HandlerTest : IRequestHandler<EventTeste, Result>
+    {
+        public async Task<Result> Handle(EventTeste request, CancellationToken cancellationToken)
+        {
+            Console.WriteLine(request.EventId);
+            return Result.Success();
+        }
+    }
 }
+
