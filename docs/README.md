@@ -1,3 +1,6 @@
+[![Maintainability](https://api.codeclimate.com/v1/badges/d721340646b2a2b189e4/maintainability)](https://codeclimate.com/github/josealmir/rabbitmq-connector/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/d721340646b2a2b189e4/test_coverage)](https://codeclimate.com/github/josealmir/rabbitmq-connector/test_coverage)
+
 # RabbitMQ Connector
 
 This package is an implementation of the connection whit RabbitMQ that using MediatR package
