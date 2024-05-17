@@ -41,7 +41,7 @@ namespace RabbitMq.Connector.Rabbit
 
             using var channel = _persistentConnection.CreateModel();
             var props = channel.CreateBasicProperties();
-            props.Headers = (IDictionary<string, object>)@event.Headers; 
+            props.Headers = RabbitEventPublisher.Convert(@event.Headers);
             var body = JsonSerializer.SerializeToUtf8Bytes(@event, options: new JsonSerializerOptions().Configure());
             channel.BasicPublish(
                 _options.ExchangeName,
@@ -72,7 +72,7 @@ namespace RabbitMq.Connector.Rabbit
                 var props = channel.CreateBasicProperties();
                 var eventName = publishRequest.EventName;
                 _logger.LogDebug($"Adding event {eventName} with id: {publishRequest.Headers[PropertieEvent.message_id]} to batch");
-                props.Headers = (IDictionary<string, object>)publishRequest.Headers;
+                props.Headers = RabbitEventPublisher.Convert(publishRequest.Headers);
                 var body = Encoding.UTF8.GetBytes(publishRequest.EventBody).AsMemory();
                 batchPublish.Add(_options.ExchangeName, routingKey: eventName, mandatory: false, properties: props, body: body);
             }
@@ -81,6 +81,16 @@ namespace RabbitMq.Connector.Rabbit
                 batchPublish.Publish();
                 _logger.LogDebug("All events were published");
             });
+        }
+
+        internal static IDictionary<string, object> Convert(IDictionary<PropertieEvent, object> keyValuePairs)
+        {
+            var dictionary = new Dictionary<string, object>();
+            foreach (var item in keyValuePairs)
+            {
+                dictionary.Add(item.Key.ToString(), item.Value);
+            }
+            return dictionary;
         }
     }
 }
