@@ -60,9 +60,9 @@ public class RabbitMQEvent : Event
 ```csharp
 public class BusinessLayer
 {
-    public BusinessLayer(IMediator mediator)
+    public BusinessLayer(IEventPublisher _publisher)
     {
-        mediator.Publish(new RabbitMQEvent { Count = 2; });
+        await _publisher.PublishAsync(new RabbitMQEvent { Count = 2; });
     }
 }
 ```

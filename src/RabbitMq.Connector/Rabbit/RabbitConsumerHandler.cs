@@ -1,11 +1,11 @@
 ﻿using MediatR;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
+using System.Text;
+using System.Text.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System.Text.Json;
 using RabbitMq.Connector.Extensions;
-using System.Text;
 using Serilog.Context;
 
 namespace RabbitMq.Connector.Rabbit
@@ -32,11 +32,11 @@ namespace RabbitMq.Connector.Rabbit
         public async Task HandleAsync(IModel consumerChannel, BasicDeliverEventArgs eventArgs)
         {
             using var scope = _serviceScopeFactory.CreateScope();
-            var correlationId = eventArgs.Correlation();
+            var correlationId = eventArgs.BasicProperties.CorrelationId;
             var eventName = eventArgs.RoutingKey;
-            LogContext.PushProperty("X-Correlation-Id", correlationId);
+            LogContext.PushProperty("CorrelationId", correlationId);
         
-            using (_logger.BeginScope(new Dictionary<string, object> { ["X-Correlation-Id"] = correlationId, ["RequestPath"] = eventName }))
+            using (_logger.BeginScope(new Dictionary<string, object> { ["CorrelationId"] = correlationId, ["RequestPath"] = eventName }))
             {
                 try
                 {
@@ -100,7 +100,7 @@ namespace RabbitMq.Connector.Rabbit
             _logger.LogDebug("Trying to deserialize event");
             var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
 
-            var correlationId = eventArgs.Correlation();
+            var correlationId = eventArgs.BasicProperties.CorrelationId;
             using (_logger.BeginScope(new Dictionary<string, object> { ["CorrelationId"] = correlationId, ["Message"] = message }))
             {
                 try
