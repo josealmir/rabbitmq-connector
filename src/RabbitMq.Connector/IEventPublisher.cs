@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using RabbitMq.Connector.Model;
+﻿using RabbitMq.Connector.Model;
 
 namespace RabbitMq.Connector
 {

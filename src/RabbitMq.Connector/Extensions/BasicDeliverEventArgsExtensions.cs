@@ -13,10 +13,7 @@ namespace RabbitMq.Connector.Rabbit
         public static string Correlation(this BasicDeliverEventArgs eventArgs)
         {
             if (eventArgs is null)
-                throw new ArgumentNullException(nameof(eventArgs));
-
-            if (eventArgs.BasicProperties.Headers is null)
-                return string.Empty;                
+                throw new ArgumentNullException(nameof(eventArgs));  
             
             return  eventArgs.BasicProperties.MessageId;                
         }
