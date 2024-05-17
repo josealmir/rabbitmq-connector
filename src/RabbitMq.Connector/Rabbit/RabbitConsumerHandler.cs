@@ -99,6 +99,7 @@ namespace RabbitMq.Connector.Rabbit
         {
             _logger.LogDebug("Trying to deserialize event");
             var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
+
             var correlationId = eventArgs.Correlation();
             using (_logger.BeginScope(new Dictionary<string, object> { ["CorrelationId"] = correlationId, ["Message"] = message }))
             {

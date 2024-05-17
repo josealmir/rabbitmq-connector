@@ -33,30 +33,27 @@ namespace RabbitMq.Connector.Rabbit
 
         public async Task PublishAsync<T>(T @event) where T : Event
         {
-            await Task.Run(() =>
-            {
-                _exchangeQueueCreator.EnsureExchangeIsCreated();
-                var eventName = @event.GetType().Name;
-                _logger.LogDebug($"Publishing {eventName} with id: {@event.EventId}");
-                if (!_persistentConnection.IsConnected)
-                    _persistentConnection.TryConnect();
+            _exchangeQueueCreator.EnsureExchangeIsCreated();
+            var eventName = @event.GetType().Name;
+            _logger.LogDebug($"Publishing {eventName} with id: {@event.Headers[PropertieEvent.message_id]}");
+            if (!_persistentConnection.IsConnected)
+                _persistentConnection.TryConnect();
 
-                using var channel = _persistentConnection.CreateModel();
-                var props = channel.CreateBasicProperties();
-                props.Headers = @event.Headers;
-                var body = JsonSerializer.SerializeToUtf8Bytes(@event, options: new JsonSerializerOptions().Configure());
-                channel.BasicPublish(
-                    _options.ExchangeName,
-                    routingKey: eventName,
-                    basicProperties: props,
-                    body: body);
-                _logger.LogDebug("Event published");
-            });
+            using var channel = _persistentConnection.CreateModel();
+            var props = channel.CreateBasicProperties();
+            props.Headers = (IDictionary<string, object>)@event.Headers; 
+            var body = JsonSerializer.SerializeToUtf8Bytes(@event, options: new JsonSerializerOptions().Configure());
+            channel.BasicPublish(
+                _options.ExchangeName,
+                routingKey: eventName,
+                basicProperties: props,
+                body: body);
+            _logger.LogDebug("Event published");
         }
 
 
         public Task PublishManyAsync(Event[] events)
-            => PublishManyAsync(events.Select(e => new EventPublishRequest(JsonSerializer.Serialize(e, options: new JsonSerializerOptions().Configure()), e.EventId, e.Name, e.Headers)).ToArray());
+            => PublishManyAsync(events.Select(e => new EventPublishRequest(JsonSerializer.Serialize(e, options: new JsonSerializerOptions().Configure()), e.Name, e.Headers)).ToArray());
 
         public async Task PublishManyAsync(EventPublishRequest[] publishRequests)
         {
@@ -67,18 +64,18 @@ namespace RabbitMq.Connector.Rabbit
                 if (!_persistentConnection.IsConnected)
                     _persistentConnection.TryConnect();
 
-                using var channel = _persistentConnection.CreateModel();
-                var batchPublish = channel.CreateBasicPublishBatch();
-
-                foreach (var publishRequest in publishRequests)
-                {
-                    var props = channel.CreateBasicProperties();
-                    var eventName = publishRequest.EventName;
-                    _logger.LogDebug($"Adding event {eventName} with id: {publishRequest.EventId} to batch");
-                    props.Headers = publishRequest.Headers;
-                    var body = Encoding.UTF8.GetBytes(publishRequest.EventBody).AsMemory();
-                    batchPublish.Add(_options.ExchangeName, routingKey: eventName, mandatory: false, properties: props, body: body);
-                }
+            using var channel = _persistentConnection.CreateModel();
+            var batchPublish = channel.CreateBasicPublishBatch();
+        
+            foreach (var publishRequest in publishRequests)
+            {
+                var props = channel.CreateBasicProperties();
+                var eventName = publishRequest.EventName;
+                _logger.LogDebug($"Adding event {eventName} with id: {publishRequest.Headers[PropertieEvent.message_id]} to batch");
+                props.Headers = (IDictionary<string, object>)publishRequest.Headers;
+                var body = Encoding.UTF8.GetBytes(publishRequest.EventBody).AsMemory();
+                batchPublish.Add(_options.ExchangeName, routingKey: eventName, mandatory: false, properties: props, body: body);
+            }
 
                 _logger.LogDebug("Publishing batch events");
                 batchPublish.Publish();

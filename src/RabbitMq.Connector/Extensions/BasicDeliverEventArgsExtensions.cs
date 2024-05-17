@@ -1,5 +1,3 @@
-using System;
-using System.Text;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMq.Connector.Rabbit
@@ -10,17 +8,17 @@ namespace RabbitMq.Connector.Rabbit
         /// Get Correlation from BasicProperties or Headers.
         /// </summary>
         /// <param name="eventArgs"></param>
-        /// <returns>Correlation Id from BasicProperties or Headers with name X-Correlation-Id.</returns>
+        /// <returns>Correlation Id from BasicProperties or Headers</returns>
         /// <exception cref="ArgumentNullException"/>
         public static string Correlation(this BasicDeliverEventArgs eventArgs)
         {
             if (eventArgs is null)
                 throw new ArgumentNullException(nameof(eventArgs));
 
-            if (eventArgs.BasicProperties.Headers != null && eventArgs.BasicProperties.Headers.TryGetValue("X-Correlation-Id", out var correlationId) && correlationId is byte[] correlation && correlation.Length > 0)
-                return  Encoding.UTF8.GetString(correlation);
-            else 
-                return eventArgs.BasicProperties.CorrelationId ?? string.Empty;
+            if (eventArgs.BasicProperties.Headers is null)
+                return string.Empty;                
+            
+            return  eventArgs.BasicProperties.MessageId;                
         }
     }
 }
