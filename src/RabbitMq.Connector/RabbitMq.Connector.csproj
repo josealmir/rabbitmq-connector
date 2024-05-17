@@ -4,7 +4,7 @@
     <ImplicitUsings>true</ImplicitUsings>
     <LangVersion>10</LangVersion>
     <Nullable>enable</Nullable>
-    <Authors>José Almir</Authors>    
+    <Authors>José Almir</Authors>
     <PackageIcon>icon.png</PackageIcon>
     <RepositoryType>git</RepositoryType>
     <Copyright>Copyright(c) José Almir</Copyright>
@@ -22,18 +22,18 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Serilog" Version="3.1.1" />
-    <PackageReference Include="MediatR" Version="12.2.0" />    
-    <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />    
+    <PackageReference Include="MediatR" Version="12.2.0" />
+    <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
     <PackageReference Include="System.Text.Json" Version="8.0.1" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="Divino.OperationResult" Version="3.1.0" />    
+    <PackageReference Include="Divino.OperationResult" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
-      <None Include="..\..\docs\icon.png" Pack="true" PackagePath="\" />
-      <None Include="..\..\docs\README.md" Pack="true" PackagePath="\" />
-      <None Include="..\..\docs\LICENSE" Pack="true" PackagePath="\" />
+    <None Include="..\..\docs\icon.png" Pack="true" PackagePath="\" />
+    <None Include="..\..\docs\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\docs\LICENSE" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>
