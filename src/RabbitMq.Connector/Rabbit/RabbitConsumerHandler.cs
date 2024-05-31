@@ -2,11 +2,12 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text;
+using Serilog.Context;
 using System.Text.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMq.Connector.Extensions;
-using Serilog.Context;
+using RabbitMq.Connector.Model;
 
 namespace RabbitMq.Connector.Rabbit
 {
@@ -32,10 +33,11 @@ namespace RabbitMq.Connector.Rabbit
         public async Task HandleAsync(IModel consumerChannel, BasicDeliverEventArgs eventArgs)
         {
             using var scope = _serviceScopeFactory.CreateScope();
-            var correlationId = eventArgs.BasicProperties.CorrelationId;
+            var correlationId = eventArgs.BasicProperties.AppId;
             var eventName = eventArgs.RoutingKey;
+            var request = EventPublishRequest.From(eventArgs, eventName);
             LogContext.PushProperty("CorrelationId", correlationId);
-        
+
             using (_logger.BeginScope(new Dictionary<string, object> { ["CorrelationId"] = correlationId, ["RequestPath"] = eventName }))
             {
                 try
@@ -72,7 +74,7 @@ namespace RabbitMq.Connector.Rabbit
                 if (@event is null)
                 {
                     _logger.LogInformation("Event is null and not send");
-                    return;                    
+                    return;
                 }
 
                 dynamic? result = await mediator.Send(@event);
@@ -101,6 +103,7 @@ namespace RabbitMq.Connector.Rabbit
             var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
 
             var correlationId = eventArgs.BasicProperties.CorrelationId;
+            
             using (_logger.BeginScope(new Dictionary<string, object> { ["CorrelationId"] = correlationId, ["Message"] = message }))
             {
                 try

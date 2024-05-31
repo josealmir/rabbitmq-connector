@@ -46,7 +46,6 @@ public class Worker : BackgroundService
     {
         public async Task<Result> Handle(EventTeste request, CancellationToken cancellationToken)
         {
-            Console.WriteLine(request.Headers[PropertieEvent.message_id]);
             return Result.Success();
         }
     }

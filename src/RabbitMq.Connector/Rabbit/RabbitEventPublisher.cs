@@ -6,9 +6,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using RabbitMq.Connector.Model;
-using System.Threading.Tasks;
-using System.Linq;
-using System;
 
 [assembly: InternalsVisibleTo("EventBus.RabbitMQ.Extensions.DependencyInjection")]
 namespace RabbitMq.Connector.Rabbit
@@ -35,13 +32,13 @@ namespace RabbitMq.Connector.Rabbit
         {
             _exchangeQueueCreator.EnsureExchangeIsCreated();
             var eventName = @event.GetType().Name;
-            _logger.LogDebug($"Publishing {eventName} with id: {@event.Headers[PropertieEvent.message_id]}");
             if (!_persistentConnection.IsConnected)
                 _persistentConnection.TryConnect();
 
             using var channel = _persistentConnection.CreateModel();
-            var props = channel.CreateBasicProperties();
-            props.Headers = RabbitEventPublisher.Convert(@event.Headers);
+            var props = @event.MapTo(channel);
+
+            props.Headers = @event.Headers;
             var body = JsonSerializer.SerializeToUtf8Bytes(@event, options: new JsonSerializerOptions().Configure());
             channel.BasicPublish(
                 _options.ExchangeName,
@@ -64,33 +61,24 @@ namespace RabbitMq.Connector.Rabbit
                 if (!_persistentConnection.IsConnected)
                     _persistentConnection.TryConnect();
 
-            using var channel = _persistentConnection.CreateModel();
-            var batchPublish = channel.CreateBasicPublishBatch();
-        
-            foreach (var publishRequest in publishRequests)
-            {
-                var props = channel.CreateBasicProperties();
-                var eventName = publishRequest.EventName;
-                _logger.LogDebug($"Adding event {eventName} with id: {publishRequest.Headers[PropertieEvent.message_id]} to batch");
-                props.Headers = RabbitEventPublisher.Convert(publishRequest.Headers);
-                var body = Encoding.UTF8.GetBytes(publishRequest.EventBody).AsMemory();
-                batchPublish.Add(_options.ExchangeName, routingKey: eventName, mandatory: false, properties: props, body: body);
-            }
+                using var channel = _persistentConnection.CreateModel();
+                var batchPublish = channel.CreateBasicPublishBatch();
+            
+                foreach (var publishRequest in publishRequests)
+                {
+                    var props = publishRequest.MapTo(channel);
+
+                    var eventName = publishRequest.EventName;
+                    _logger.LogDebug($"Adding event {eventName}");
+                    
+                    var body = Encoding.UTF8.GetBytes(publishRequest.EventBody).AsMemory();
+                    batchPublish.Add(_options.ExchangeName, routingKey: eventName, mandatory: false, properties: props, body: body);
+                }
 
                 _logger.LogDebug("Publishing batch events");
                 batchPublish.Publish();
                 _logger.LogDebug("All events were published");
             });
-        }
-
-        internal static IDictionary<string, object> Convert(IDictionary<PropertieEvent, object> keyValuePairs)
-        {
-            var dictionary = new Dictionary<string, object>();
-            foreach (var item in keyValuePairs)
-            {
-                dictionary.Add(item.Key.ToString(), item.Value);
-            }
-            return dictionary;
         }
     }
 }

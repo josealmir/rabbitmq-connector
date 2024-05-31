@@ -5,10 +5,6 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text.Json;
 using RabbitMq.Connector.Extensions;
-using System;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace RabbitMq.Connector.Rabbit
 {
