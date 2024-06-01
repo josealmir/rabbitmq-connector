@@ -8,6 +8,9 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMq.Connector.Extensions;
 using RabbitMq.Connector.Model;
+using System.Diagnostics;
+using OpenTelemetry.Context.Propagation;
+using OpenTelemetry;
 
 namespace RabbitMq.Connector.Rabbit
 {
@@ -16,6 +19,8 @@ namespace RabbitMq.Connector.Rabbit
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ISubscriptionManager _subscriptionManager;
         private readonly ILogger<RabbitConsumerHandler> _logger;
+        private static readonly ActivitySource _activitySource = new(nameof(RabbitConsumerHandler));
+        private static readonly TextMapPropagator _propagator = Propagators.DefaultTextMapPropagator;
 
         public RabbitConsumerHandler(
             IEnumerable<IServiceScopeFactory> serviceScopeFactory,
@@ -33,33 +38,39 @@ namespace RabbitMq.Connector.Rabbit
         public async Task HandleAsync(IModel consumerChannel, BasicDeliverEventArgs eventArgs)
         {
             using var scope = _serviceScopeFactory.CreateScope();
-            var correlationId = eventArgs.BasicProperties.AppId;
             var eventName = eventArgs.RoutingKey;
             var request = EventPublishRequest.From(eventArgs, eventName);
-            LogContext.PushProperty("CorrelationId", correlationId);
 
-            using (_logger.BeginScope(new Dictionary<string, object> { ["CorrelationId"] = correlationId, ["RequestPath"] = eventName }))
+            using (_logger.BeginScope(new Dictionary<string, object> { ["CorrelationId"] = String.Empty, ["RequestPath"] = eventName }))
             {
-                try
+                var parentContext = _propagator.Extract(default, eventArgs.BasicProperties, TryExtractActivityToHeader);
+                Baggage.Current = parentContext.Baggage;
+                var activityEventName = $"Consumer Event {request.GetType().Name}";
+                
+                using (var activity = _activitySource.StartActivity(activityEventName, ActivityKind.Consumer, parentContext.ActivityContext))
                 {
-                    _logger.LogDebug("New event arrived");
-                    if (TryRetriveEventType(eventName, out var eventType) &&
-                        TryDeserializeEvent(eventArgs, eventType, out object? @event))
+                    try
                     {
-                        await TryHandleEvent(consumerChannel, eventArgs, scope, @event);
+                        _logger.LogDebug("New event arrived");
+                        if (TryRetriveEventType(eventName, out var eventType) &&
+                            TryDeserializeEvent(eventArgs, eventType, out object? @event))
+                        {
+                            await TryHandleEvent(consumerChannel, eventArgs, scope, @event);
+                        }
+                        else
+                        {
+                            _logger.LogDebug("Removing unreadable event from queue");
+                            consumerChannel.BasicNack(eventArgs.DeliveryTag, false, false);
+                        }
+                        _logger.LogDebug("Finishing handling event");                   
+    
+                        consumerChannel.TxCommit();
                     }
-                    else
+                    catch (Exception e)
                     {
-                        _logger.LogDebug("Removing unreadable event from queue");
-                        consumerChannel.BasicNack(eventArgs.DeliveryTag, false, false);
+                        _logger.LogError(e, "Failed to process event");
                     }
-                    _logger.LogDebug("Finishing handling event");
-                    consumerChannel.TxCommit();
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, "Failed to process event");
-                }
+                }                
             }
         }
 
@@ -143,5 +154,23 @@ namespace RabbitMq.Connector.Rabbit
             return subscriptionFound;
         }
 
+        internal IEnumerable<string> TryExtractActivityToHeader(IBasicProperties props, string key)
+        {
+            try
+            {
+                if (props.Headers.TryGetValue(key, out var value))
+                {
+                    var bytes = value as byte[];
+                    return new[] { Encoding.UTF8.GetString(bytes) };
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to extract trace context.");
+            }
+
+            return Enumerable.Empty<string>();
+        }
+        
     }
 }
