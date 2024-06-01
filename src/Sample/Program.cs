@@ -1,6 +1,7 @@
 using Sample;
 using RabbitMq.Connector.IoC;
 using static Sample.Worker;
+using RabbitMq.Connector;
 
 
 IHost host = Host.CreateDefaultBuilder(args)
@@ -30,3 +31,4 @@ IHost host = Host.CreateDefaultBuilder(args)
     .Build();
 
 await host.RunAsync();
+

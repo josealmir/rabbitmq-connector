@@ -42,10 +42,11 @@ public class Worker : BackgroundService
         public int Count { get; set; }
     }
 
-    public class HandlerTest : IRequestHandler<EventTeste, Result>
+    public class HandlerTest(IEventPublisher publisher) : IRequestHandler<EventTeste, Result>
     {
         public async Task<Result> Handle(EventTeste request, CancellationToken cancellationToken)
         {
+            await publisher.PublishAsync(request);
             return Result.Success();
         }
     }

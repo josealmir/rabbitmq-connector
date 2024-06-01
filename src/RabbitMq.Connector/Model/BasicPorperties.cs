@@ -1,19 +1,19 @@
 
 namespace RabbitMq.Connector.Model
 {
-    public enum PropertieEvent
+    public enum BasicPorperties
     {
-        content_type,
         content_encoding,
-        priority,
         correlation_id,
-        reply_to,
-        expiration,
+        content_type,
         message_id,
+        cluster_id,
+        expiration,
         timestamp,
-        type,
+        priority,
+        reply_to,
         user_id,
         app_id,
-        cluster_id,
+        type,
     }
 }

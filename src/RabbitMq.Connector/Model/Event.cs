@@ -18,20 +18,4 @@ namespace RabbitMq.Connector.Model
         [JsonIgnore]
         public IDictionary<string, object> Headers { get; set; } = new Dictionary<string, object>(12);
     }
-
-    public enum BasicPorperties
-    {
-        content_encoding,
-        correlation_id,
-        content_type,
-        message_id,
-        cluster_id,
-        expiration,
-        timestamp,
-        priority,
-        reply_to,
-        user_id,
-        app_id,
-        type,
-    }
 }
