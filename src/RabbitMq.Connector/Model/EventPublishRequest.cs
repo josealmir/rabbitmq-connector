@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json.Serialization;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 namespace RabbitMq.Connector.Model
@@ -9,27 +10,23 @@ namespace RabbitMq.Connector.Model
         public EventPublishRequest(
             string eventBody,
             string eventName, 
-            IDictionary<string, object> headers)
+            IBasicProperties basicPorperties)
         {
             EventBody = eventBody ?? EventBody;
             EventName = eventName;
-            Headers = headers;
+            BasicProperties = basicPorperties;
         }
 
         public string EventBody { get; private set; } = string.Empty;
         
         public string EventName { get; private set; } = string.Empty;
         
-        [JsonIgnore]
-        public IDictionary<string, object> Headers { get; set; } = new Dictionary<string, object>();
-        
-        [JsonIgnore]
-        public IDictionary<BasicPorperties, string> BasicPropertie { get; set; } = new Dictionary<BasicPorperties, string>(12);
-        
+        [JsonIgnore]        
+        public IBasicProperties BasicProperties { get; set;}
         public static EventPublishRequest From(BasicDeliverEventArgs eventArgs, string eventName)
         {
             var eventBody = Encoding.UTF8.GetString(eventArgs.Body.ToArray()) ?? string.Empty;
-            return new(eventBody, eventName, eventArgs.BasicProperties.Headers);
+            return new(eventBody, eventName, eventArgs.BasicProperties);
         }
     }
 }
