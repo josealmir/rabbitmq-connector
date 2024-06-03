@@ -2,6 +2,7 @@ using Sample;
 using RabbitMq.Connector.IoC;
 using static Sample.Worker;
 using RabbitMq.Connector;
+using System.Diagnostics;
 
 
 IHost host = Host.CreateDefaultBuilder(args)
@@ -21,11 +22,11 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddMediatR(options => { options.RegisterServicesFromAssembly(typeof(EventTeste).Assembly);});
         services.AddRabbitEventBusUseUri(option => 
         {
-            option.QueueName = "queue-name";
+            option.QueueName = "EventTeste";
             option.ExchangeName = "exchange-name";
             option.ConnectionUri = "amqp://guest:guest@localhost:5672/";
         });
-
+        services.AddSingleton(new ActivitySource("sample-teste"));
         services.AddHostedService<Worker>();
     })
     .Build();

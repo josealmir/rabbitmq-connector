@@ -19,8 +19,6 @@ namespace RabbitMq.Connector.Rabbit
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ISubscriptionManager _subscriptionManager;
         private readonly ILogger<RabbitConsumerHandler> _logger;
-        private static readonly ActivitySource _activitySource = new(nameof(RabbitConsumerHandler));
-        private static readonly TextMapPropagator _propagator = Propagators.DefaultTextMapPropagator;
 
         public RabbitConsumerHandler(
             IEnumerable<IServiceScopeFactory> serviceScopeFactory,
@@ -41,36 +39,27 @@ namespace RabbitMq.Connector.Rabbit
             var eventName = eventArgs.RoutingKey;
             var request = EventPublishRequest.From(eventArgs, eventName);
 
-            using (_logger.BeginScope(new Dictionary<string, object> { ["CorrelationId"] = String.Empty, ["RequestPath"] = eventName }))
-            {
-                var parentContext = _propagator.Extract(default, eventArgs.BasicProperties, TryExtractActivityToHeader);
-                Baggage.Current = parentContext.Baggage;
-                var activityEventName = $"Consumer Event {request.GetType().Name}";
-                
-                using (var activity = _activitySource.StartActivity(activityEventName, ActivityKind.Consumer, parentContext.ActivityContext))
+            using (_logger.BeginScope(new Dictionary<string, object> { ["RequestPath"] = eventName }))
+            {                
+                try
                 {
-                    try
+                    _logger.LogDebug("New event arrived");
+                    if (TryRetriveEventType(eventName, out var eventType) &&
+                        TryDeserializeEvent(eventArgs, eventType, out object? @event))
                     {
-                        _logger.LogDebug("New event arrived");
-                        if (TryRetriveEventType(eventName, out var eventType) &&
-                            TryDeserializeEvent(eventArgs, eventType, out object? @event))
-                        {
-                            await TryHandleEvent(consumerChannel, eventArgs, scope, @event);
-                        }
-                        else
-                        {
-                            _logger.LogDebug("Removing unreadable event from queue");
-                            consumerChannel.BasicNack(eventArgs.DeliveryTag, false, false);
-                        }
-                        _logger.LogDebug("Finishing handling event");                   
-    
-                        consumerChannel.TxCommit();
+                        await TryHandleEvent(consumerChannel, eventArgs, scope, @event);
                     }
-                    catch (Exception e)
+                    else
                     {
-                        _logger.LogError(e, "Failed to process event");
+                        _logger.LogDebug("Removing unreadable event from queue");
+                        consumerChannel.BasicNack(eventArgs.DeliveryTag, false, false);
                     }
-                }                
+                    _logger.LogDebug("Finishing handling event");                   
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Failed to process event");
+                }             
             }
         }
 
@@ -112,15 +101,17 @@ namespace RabbitMq.Connector.Rabbit
         {
             _logger.LogDebug("Trying to deserialize event");
             var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
-
-            var correlationId = eventArgs.BasicProperties.CorrelationId;
             
-            using (_logger.BeginScope(new Dictionary<string, object> { ["CorrelationId"] = correlationId, ["Message"] = message }))
+            using (_logger.BeginScope(new Dictionary<string, object> { ["Message"] = message }))
             {
                 try
                 {
                     _logger.LogDebug("Message converted from bytes to string, deserializing");
                     @event = JsonSerializer.Deserialize(message, eventType ?? typeof(string) , options: new JsonSerializerOptions().Configure());
+                    
+                    if(@event is not null)
+                        @event.BasicProperties = @event.BasicProperties = eventArgs.BasicProperties;
+
                     _logger.LogDebug("Event was deserialized");
                 }
                 catch (Exception ex)
@@ -154,23 +145,5 @@ namespace RabbitMq.Connector.Rabbit
             return subscriptionFound;
         }
 
-        internal IEnumerable<string> TryExtractActivityToHeader(IBasicProperties props, string key)
-        {
-            try
-            {
-                if (props.Headers.TryGetValue(key, out var value))
-                {
-                    var bytes = value as byte[];
-                    return new[] { Encoding.UTF8.GetString(bytes) };
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to extract trace context.");
-            }
-
-            return Enumerable.Empty<string>();
-        }
-        
     }
 }

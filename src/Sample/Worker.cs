@@ -1,6 +1,8 @@
+using System.Diagnostics;
 using MediatR;
 using OperationResult;
 using RabbitMq.Connector;
+using RabbitMq.Connector.Extensions;
 using RabbitMq.Connector.Model;
 
 namespace Sample;
@@ -42,11 +44,13 @@ public class Worker : BackgroundService
         public int Count { get; set; }
     }
 
-    public class HandlerTest(IEventPublisher publisher) : IRequestHandler<EventTeste, Result>
+    public class HandlerTest(IEventPublisher publisher, ActivitySource activitySource) : IRequestHandler<EventTeste, Result>
     {
         public async Task<Result> Handle(EventTeste request, CancellationToken cancellationToken)
         {
-            await publisher.PublishAsync(request);
+            using var activity = activitySource.StartActivity(nameof(EventTeste), ActivityKind.Consumer, parentContext: request.ExtractActivityContext());
+            
+            // await publisher.PublishAsync(request);
             return Result.Success();
         }
     }

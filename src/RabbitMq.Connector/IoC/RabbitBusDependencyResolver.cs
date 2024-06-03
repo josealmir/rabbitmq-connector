@@ -5,6 +5,7 @@ using RabbitMq.Connector.Rabbit;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
+using System.Diagnostics;
 
 namespace RabbitMq.Connector.IoC
 {
